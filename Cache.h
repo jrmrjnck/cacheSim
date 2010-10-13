@@ -23,11 +23,13 @@ class Cache : public QAbstractTableModel
 public:
    Cache( int wordsPerBlock, int lines );
 
-public:
    int rowCount( const QModelIndex& parent = QModelIndex() ) const;
    int columnCount( const QModelIndex& parent = QModelIndex() ) const;
    QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
    QVariant headerData( int section, Qt::Orientation o, int role = Qt::DisplayRole ) const;
+
+private:
+   void _flushCache();
    
 private:
    QVector<CacheLine> _cache;

@@ -17,11 +17,7 @@ Cache::Cache( int wordsPerBlock, int lines ) : QAbstractTableModel(),
    _cacheLines = lines;
    _wordsPerBlock = wordsPerBlock;
 
-   for( int i = 0; i < lines; ++i ) {
-      for( int j = 0; j < wordsPerBlock; ++j ) {
-         _cache[i].words[j] = 0;
-      }
-   }
+   _flushCache();
 }
 
 int Cache::rowCount( const QModelIndex& parent ) const
@@ -79,4 +75,15 @@ QVariant Cache::headerData( int section, Qt::Orientation orientation, int role )
       return QVariant( section - 2 );
 
    return QVariant();
+}
+
+void Cache::_flushCache()
+{
+   for( int i = 0; i < _cacheLines; ++i ) {
+      _cache[i].dirty = false;
+      _cache[i].tag   = 0;
+      for( int j = 0; j < _wordsPerBlock; ++j ) {
+         _cache[i].words[j] = 0;
+      }
+   }
 }
