@@ -7,9 +7,17 @@
  *
 \****************************************************************************/
 
-int main()
+#include <QtGui/QApplication>
+
+#include "MainWindow.h"
+
+int main( int argc, char* argv[] )
 {
+   QApplication cacheSim( argc, argv );
+
+   MainWindow w;
+   w.show();
    
-   return EXIT_SUCCESS;
+   return cacheSim.exec();
 }
 
