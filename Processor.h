@@ -10,17 +10,49 @@
 #define PROCESSOR_H
 
 #include <QWidget>
+#include <QtGui/QTableWidget>
+#include <QtGui/QPushButton>
+#include <QtGui/QLineEdit>
 
+#include "Cache.h"
+#include "Memory.h"
+
+enum OpCode{LOAD,STORE,ADD,HALT};
+
+struct Instruction
+{
+   OpCode opcode;
+   int operand;
+};
+
+// The Processor class takes care of running the program,
+// interfacing with the cache, and also acts as a view on
+// the internal state of the program (i.e. instruction list + PC)
 class Processor : public QWidget
 {
     Q_OBJECT
 public:
     explicit Processor(QWidget *parent = 0);
 
-signals:
+    Cache* getCache();
+    Memory* getMemory();
+    void readFile( QString filename );
 
-public slots:
+private slots:
+    void _step();
 
+private:
+    void _halt();
+
+private:
+    Cache*  _cache;
+    Memory* _memory;
+
+    QList<Instruction> _instructions;
+
+    QTableWidget* _insDisplay;
+    QPushButton* _stepButton;
+    QLineEdit* _accBox;
 };
 
 #endif // PROCESSOR_H
