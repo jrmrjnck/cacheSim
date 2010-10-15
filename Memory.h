@@ -16,14 +16,22 @@ class Memory : public QAbstractTableModel
    Q_OBJECT
 
 public:
-   Memory();
+   Memory( int wordSize = 16, int numWords = 512 );
    ~Memory();
+
+   int maxAddress();
+   void writeData( int address, int data );
+   int readData( int address );
 
    int rowCount( const QModelIndex& parent = QModelIndex() ) const;
    int columnCount( const QModelIndex& parent = QModelIndex() ) const;
    QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
    QVariant headerData( int section, Qt::Orientation o, int role = Qt::DisplayRole ) const;
 
+private:
+   int* _data;
+   int  _numWords;
+   int  _mask;
 };
 
 #endif // MEMORY_H

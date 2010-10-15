@@ -12,7 +12,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QStringList>
 #include <QtCore/QTextStream>
-#include <QtGui/QTableWidget>
+#include <QtGui/QListWidgetItem>
 #include <QtGui/QHeaderView>
 
 #include "Exceptions.h"
@@ -22,20 +22,23 @@ Processor::Processor(QWidget *parent) : QWidget(parent)
 {
    // Initialize memory components
    _cache = new Cache( 4, 8 );
-   _memory = new Memory();
+   _memory = new Memory;
+   _cache->setMemory( _memory );
+   _counter = 0;
+   _running = false;
+   _accumulator = 0;
 
    // Initialize GUI elements
-   _insDisplay = new QTableWidget( 0, 2 );
-   _insDisplay->horizontalHeader()->setVisible(false);
-   _insDisplay->verticalHeader()->setVisible(false);
-   _insDisplay->setShowGrid( false );
-   _insDisplay->setLineWidth( 0 );
-   _insDisplay->setEditTriggers( QAbstractItemView::NoEditTriggers );
+   _insDisplay = new QListWidget();
+   _insDisplay->setSelectionMode( QAbstractItemView::NoSelection );
+   _insDisplay->setSpacing( 5 );
    _stepButton = new QPushButton( "Step" );
    QLabel* _programLabel = new QLabel( "Program:" );
    QLabel* _accLabel = new QLabel( "Accumulator Value:" );
    _accBox = new QLineEdit;
    _accBox->setReadOnly( true );
+   _accBox->setAlignment( Qt::AlignRight );
+   _accBox->setText( "0x0" );
 
    QGridLayout* _layout = new QGridLayout( this );
    _layout->addWidget( _programLabel );
@@ -52,11 +55,49 @@ Processor::Processor(QWidget *parent) : QWidget(parent)
 // Execute the next instruction
 void Processor::_step()
 {
+   if( !_running )
+      return;
+
+   _insDisplay->item(_counter)->setIcon(QIcon("blank.png"));
+
+   _execInstruction();
+
+   if( _counter == _instructions.size()-1 ) {
+      _running = false;
+      _stepButton->setEnabled( false );
+      return;
+   }
+
+   _insDisplay->item(++_counter)->setIcon(QIcon("arrow.png"));
 }
 
-// Stop execution of program
-void Processor::_halt()
+void Processor::_execInstruction()
 {
+   int operand = _instructions.at( _counter ).operand;
+   switch( _instructions.at(_counter).opcode )
+   {
+   case LOAD:
+      _accumulator = _cache->readData( operand );
+      break;
+   case STORE:
+      _cache->writeData( _instructions.at(_counter).operand,
+                         _accumulator );
+      break;
+   case ADD:
+      _accumulator += operand;
+      break;
+   case HALT:
+      _cache->flushCache();
+      break;
+   default:
+      break;
+   }
+   _updateAccDisplay();
+}
+
+void Processor::_updateAccDisplay()
+{
+   _accBox->setText( "0x" + QString::number(_accumulator, 16) );
 }
 
 Cache* Processor::getCache()
@@ -77,6 +118,8 @@ void Processor::readFile( QString filename )
    }
 
    _instructions.clear();
+   _insDisplay->clear();
+
    QTextStream fileStream( &sourceFile );
 
    for(int i = 0; !fileStream.atEnd(); ++i ) {
@@ -101,15 +144,19 @@ void Processor::readFile( QString filename )
          // TODO: Invalid instruction
       }
 
-      _insDisplay->setRowCount( i + 1 );
       if( ins.opcode == HALT )
          ins.operand = 0;
+      else if( ins.opcode == ADD )
+         ins.operand = parts.at(1).toInt( 0, 10 );
       else {
-         ins.operand = parts.at(1).toInt();
-         _insDisplay->setItem( i, 1, new QTableWidgetItem(parts.at(1)) );
+         ins.operand = parts.at(1).toInt( 0, 16 );
       }
 
       _instructions.append( ins );
-      _insDisplay->setItem( i, 0, new QTableWidgetItem(oc) );
+      _insDisplay->insertItem( i, new QListWidgetItem(QIcon("blank.png"),line) );
    }
+   _counter = 0;
+   _stepButton->setEnabled( true );
+   _insDisplay->item(0)->setIcon( QIcon("arrow.png") );
+   _running = true;
 }

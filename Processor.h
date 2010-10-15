@@ -10,7 +10,7 @@
 #define PROCESSOR_H
 
 #include <QWidget>
-#include <QtGui/QTableWidget>
+#include <QtGui/QListWidget>
 #include <QtGui/QPushButton>
 #include <QtGui/QLineEdit>
 
@@ -42,15 +42,19 @@ private slots:
     void _step();
 
 private:
-    void _halt();
+    void _execInstruction();
+    void _updateAccDisplay();
 
 private:
     Cache*  _cache;
     Memory* _memory;
 
     QList<Instruction> _instructions;
+    int _counter;
+    bool _running;
+    int _accumulator;
 
-    QTableWidget* _insDisplay;
+    QListWidget* _insDisplay;
     QPushButton* _stepButton;
     QLineEdit* _accBox;
 };

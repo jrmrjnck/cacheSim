@@ -21,3 +21,17 @@ int main( int argc, char* argv[] )
    return cacheSim.exec();
 }
 
+// Binary Logarithm
+// from http://en.wikipedia.org/wiki/Binary_logarithm
+int floorLog2(unsigned int n) {
+  if (n == 0)
+    return -1;
+
+  int pos = 0;
+  if (n >= 1<<16) { n >>= 16; pos += 16; }
+  if (n >= 1<< 8) { n >>=  8; pos +=  8; }
+  if (n >= 1<< 4) { n >>=  4; pos +=  4; }
+  if (n >= 1<< 2) { n >>=  2; pos +=  2; }
+  if (n >= 1<< 1) {           pos +=  1; }
+  return pos;
+}

@@ -10,7 +10,9 @@
 #define CACHE_H
 
 #include <QAbstractTableModel>
-#include <QtCore/QVector>
+#include <QtCore/QList>
+
+#include "Memory.h"
 
 class QModelIndex;
 class CacheLine;
@@ -23,16 +25,27 @@ class Cache : public QAbstractTableModel
 public:
    Cache( int wordsPerBlock, int lines );
 
+   void setMemory( Memory* mem );
+   void flushCache();
+   void clearCache();
+
+   int readData( int address );
+   void writeData( int address, int value );
+
    int rowCount( const QModelIndex& parent = QModelIndex() ) const;
    int columnCount( const QModelIndex& parent = QModelIndex() ) const;
    QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
    QVariant headerData( int section, Qt::Orientation o, int role = Qt::DisplayRole ) const;
 
 private:
-   void _flushCache();
+   void _loadFromMemory( int tag, int line );
+   void _writeToMemory( int line );
+
+   void _updateRow( int line );
    
 private:
-   QVector<CacheLine> _cache;
+   QList<CacheLine*> _cache;
+   Memory* _mainMem;
 
    int _cacheLines;
    int _wordsPerBlock;
@@ -41,10 +54,12 @@ private:
 class CacheLine
 {
 public:
-   CacheLine( int numWords = 0 ) : dirty(0),
-                                   tag(0),
-                                   words(new int[numWords])
-   {};
+   CacheLine( int numWords = 0 )
+   {
+      dirty = false;
+      tag = 0;
+      words = new int[numWords];
+   };
 
    bool dirty;
    int  tag;
