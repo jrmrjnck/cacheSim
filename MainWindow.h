@@ -11,7 +11,10 @@
 #include <QtGui/QTableView>
 
 #include "Processor.h"
+#include "AboutWindow.h"
 
+// The highest level application object,
+// handles menus, actions, etc...
 class MainWindow : public QMainWindow
 {
    Q_OBJECT
@@ -21,12 +24,14 @@ public:
 
 public slots:
    void openFile();
+   void showAbout();
+   void closeAbout();
 
 private:
-   Processor* _proc;
-
-   QMenu* _fileMenu;
+   Processor* _processor;
 
    QTableView* _cacheView;
    QTableView* _memoryView;
+
+   AboutWindow* _aboutWindow;
 };

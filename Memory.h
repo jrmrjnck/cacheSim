@@ -11,18 +11,26 @@
 
 #include <QAbstractTableModel>
 
+#include "Exceptions.h"
+
+exceptionClass( AccessViolation );
+
+// Data model of a simple memory bank
 class Memory : public QAbstractTableModel
 {
    Q_OBJECT
 
 public:
-   Memory( int wordSize = 16, int numWords = 512 );
+   Memory( int wordSize, int numWords );
    ~Memory();
 
    int maxAddress();
-   void writeData( int address, int data );
-   int readData( int address );
+   int wordSize();
+   void clearMemory();
+   void writeData( int address, int data ) throw(AccessViolation);
+   int readData( int address ) throw(AccessViolation);
 
+   // Virtual Implementations from QAbstractTableModel
    int rowCount( const QModelIndex& parent = QModelIndex() ) const;
    int columnCount( const QModelIndex& parent = QModelIndex() ) const;
    QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
@@ -31,7 +39,7 @@ public:
 private:
    int* _data;
    int  _numWords;
-   int  _mask;
+   int  _wordSize;
 };
 
 #endif // MEMORY_H

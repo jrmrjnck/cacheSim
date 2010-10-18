@@ -9,57 +9,81 @@
 
 #include "Memory.h"
 
+// Constructor
 Memory::Memory( int wordSize, int numWords )
 {
-   _mask = (1 << wordSize) - 1;
+   _wordSize = wordSize;
    _numWords = numWords;
    _data = new int[numWords];
 
-   for( int i = 0; i < _numWords; ++i )
-      _data[i] = 0;
+   clearMemory();
 }
 
+// Destructor
 Memory::~Memory()
 {
    delete [] _data;
 }
 
+// Return the address bounds
 int Memory::maxAddress()
 {
    return _numWords - 1;
 }
 
-void Memory::writeData( int address, int data )
+// Return the word size in bits
+int Memory::wordSize()
 {
-   if( address > _numWords ){
-      // TODO: Invalid address
+   return _wordSize;
+}
+
+// Clear all the words to zero
+void Memory::clearMemory()
+{
+   for( int i = 0; i < _numWords; ++i )
+      _data[i] = 0;
+}
+
+// Write data to address
+void Memory::writeData( int address, int data ) throw(AccessViolation)
+{
+   if( address >= _numWords ){
+      throw AccessViolation( "Couldn't write at " +
+                             QString::number(address,16).toStdString() );
    }
 
    _data[address] = data;
 
+   // Tell the view to reload values
    QModelIndex cell = index( address, 0 );
    emit dataChanged( cell, cell );
 }
 
-int Memory::readData( int address )
+// Return data located at address
+int Memory::readData( int address ) throw(AccessViolation)
 {
-   if( address > _numWords ) {
-      // TODO: Invalid address
+   if( address >= _numWords ) {
+      throw AccessViolation( "Couldn't read at " +
+                            QString::number(address,16).toStdString() );
    }
 
    return _data[address];
 }
 
+// Return the number of rows to show in the table
 int Memory::rowCount( const QModelIndex& parent ) const
 {
+   // Every word gets its own row
    return _numWords;
 }
 
+// Return the number of columns to show in the table
 int Memory::columnCount( const QModelIndex& parent ) const
 {
    return 1;
 }
 
+// Outside interface to the memory data
 QVariant Memory::data( const QModelIndex& index, int role ) const
 {
    // Check validity of request
@@ -67,17 +91,16 @@ QVariant Memory::data( const QModelIndex& index, int role ) const
        index.column() != 0 )
       return QVariant();
 
-   return QVariant( "0x" + QString::number(_data[index.row()],16) );
+   // Only show the word size
+   QString number = QString::number( _data[index.row()],16 );
+   return QVariant( "0x" + number.right(_wordSize/4) );
 }
 
+// Define the labels to show in the table headers
 QVariant Memory::headerData( int section, Qt::Orientation orientation, int role ) const
 {
-   if( role != Qt::DisplayRole )
+   if( role != Qt::DisplayRole || orientation != Qt::Vertical )
       return QVariant();
 
-   if( orientation == Qt::Vertical ) {
-      return QVariant( "0x" + QString::number(section,16) );
-   }
-
-   return QVariant();
+   return QVariant( "0x" + QString::number(section,16) );
 }

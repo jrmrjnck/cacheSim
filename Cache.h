@@ -24,6 +24,7 @@ class Cache : public QAbstractTableModel
  
 public:
    Cache( int wordsPerBlock, int lines );
+   ~Cache();
 
    void setMemory( Memory* mem );
    void flushCache();
@@ -32,6 +33,7 @@ public:
    int readData( int address );
    void writeData( int address, int value );
 
+   // Virtual Implementations from QAbstractTableModel
    int rowCount( const QModelIndex& parent = QModelIndex() ) const;
    int columnCount( const QModelIndex& parent = QModelIndex() ) const;
    QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
@@ -44,7 +46,7 @@ private:
    void _updateRow( int line );
    
 private:
-   QList<CacheLine*> _cache;
+   QList<CacheLine*> _data;
    Memory* _mainMem;
 
    int _cacheLines;

@@ -16,6 +16,9 @@
 
 #include "Cache.h"
 #include "Memory.h"
+#include "Exceptions.h"
+
+typedef int16_t WORD;
 
 enum OpCode{LOAD,STORE,ADD,HALT};
 
@@ -34,9 +37,9 @@ class Processor : public QWidget
 public:
     explicit Processor(QWidget *parent = 0);
 
-    Cache* getCache();
-    Memory* getMemory();
-    void readFile( QString filename );
+    Cache*  cache();
+    Memory* memory();
+    void    readFile( QString filename );
 
 private slots:
     void _step();
@@ -45,18 +48,19 @@ private:
     void _execInstruction();
     void _updateAccDisplay();
 
+    int _showParseError( QString message );
+
 private:
     Cache*  _cache;
     Memory* _memory;
 
     QList<Instruction> _instructions;
-    int _counter;
-    bool _running;
-    int _accumulator;
+    int  _counter;
+    WORD _accumulator;
 
     QListWidget* _insDisplay;
     QPushButton* _stepButton;
-    QLineEdit* _accBox;
+    QLineEdit*   _accBox;
 };
 
 #endif // PROCESSOR_H

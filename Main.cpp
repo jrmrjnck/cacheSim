@@ -7,22 +7,36 @@
  *
 \****************************************************************************/
 
+#include <stdexcept>
+
 #include <QtGui/QApplication>
+#include <QtGui/QMessageBox>
+#include <QtCore/QDebug>
 
 #include "MainWindow.h"
 
 int main( int argc, char* argv[] )
 {
-   QApplication cacheSim( argc, argv );
+   try
+   {
+      QApplication cacheSim( argc, argv );
 
-   MainWindow w;
-   w.show();
-   
-   return cacheSim.exec();
+      MainWindow w;
+      w.show();
+      
+      return cacheSim.exec();
+   }
+   catch( std::runtime_error& e )
+   {
+      QMessageBox error;
+      error.setText( e.what() );
+      error.exec();
+      return EXIT_FAILURE;
+   }
 }
 
-// Binary Logarithm
-// from http://en.wikipedia.org/wiki/Binary_logarithm
+// Log base 2 function from
+// http://en.wikipedia.org/wiki/Binary_logarithm
 int floorLog2(unsigned int n) {
   if (n == 0)
     return -1;

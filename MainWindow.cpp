@@ -7,6 +7,7 @@
  *
 \****************************************************************************/
 
+#include <QtGui/QMessageBox>
 #include <QtGui/QTableView>
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
@@ -18,26 +19,34 @@
 #include <QtGui/QApplication>
 
 #include "MainWindow.h"
+#include "Exceptions.h"
 
+// Constructor
 MainWindow::MainWindow() : QMainWindow()
 {
    // Initialize main view widget
-   _proc = new Processor();
-   setCentralWidget( _proc );
+   _processor = new Processor();
+   setCentralWidget( _processor );
+
+   _aboutWindow = NULL; 
 
    // Add menus
-   _fileMenu = new QMenu( "&File" );
-   _fileMenu->addAction( "&Open...", this, SLOT(openFile()) );
-   _fileMenu->addAction( "E&xit", this, SLOT(close()) );
-   menuBar()->addMenu( _fileMenu );
+   QMenu* fileMenu = new QMenu( "&File" );
+   fileMenu->addAction( "&Open...", this, SLOT(openFile()), QKeySequence::Open );
+   fileMenu->addAction( "E&xit", this, SLOT(close()) );
+   menuBar()->addMenu( fileMenu );
+
+   QMenu* helpMenu = new QMenu( "&Help" );
+   helpMenu->addAction( "&About", this, SLOT(showAbout()) );
+   menuBar()->addMenu( helpMenu );
 
    // Dock the Cache widget
    QDockWidget* _cacheDock = new QDockWidget( "Cache" );
    _cacheDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
    _cacheView = new QTableView;
-   _cacheView->setModel( _proc->getCache() );
+   _cacheView->setModel( _processor->cache() );
    _cacheView->setGridStyle( Qt::DashLine );
-   _cacheView->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+   _cacheView->horizontalHeader()->setResizeMode( QHeaderView::ResizeToContents );
    _cacheView->verticalHeader()->setResizeMode( QHeaderView::ResizeToContents );
    _cacheDock->setWidget( _cacheView );
    addDockWidget( Qt::RightDockWidgetArea, _cacheDock );
@@ -46,9 +55,9 @@ MainWindow::MainWindow() : QMainWindow()
    QDockWidget* _memDock = new QDockWidget( "Main Memory" );
    _memDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
    _memoryView = new QTableView;
-   _memoryView->setModel( _proc->getMemory() );
+   _memoryView->setModel( _processor->memory() );
    _memoryView->setGridStyle( Qt::DashLine );
-   _memoryView->horizontalHeader()->setResizeMode( QHeaderView::ResizeToContents );
+   _memoryView->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
    _memoryView->horizontalHeader()->setVisible( false );
    _memoryView->verticalHeader()->setResizeMode( QHeaderView::ResizeToContents );
    _memDock->setWidget( _memoryView );
@@ -56,14 +65,19 @@ MainWindow::MainWindow() : QMainWindow()
 
    // Open file from command line if applicable
    QStringList args = qApp->arguments();
-   if( args.size() > 1 )
-      _proc->readFile( args.at(1) );
+   if( args.size() > 1 ) {
+      _processor->readFile( args.at(1) );
+   }
 }
 
+// Destructor
 MainWindow::~MainWindow()
 {
+   delete _processor;
+   delete _aboutWindow;
 }
 
+// Slot called to show an open file dialog
 void MainWindow::openFile()
 {
    QString filename = QFileDialog::getOpenFileName( this, "Open Program Source",
@@ -72,5 +86,24 @@ void MainWindow::openFile()
    if( filename == "" )
       return;
 
-   _proc->readFile( filename );
+   _processor->readFile( filename );
+}
+
+// Show the about dialog
+void MainWindow::showAbout()
+{
+   if( _aboutWindow != NULL )
+      return;
+
+   _aboutWindow = new AboutWindow( this );
+   _aboutWindow->show();
+   connect( _aboutWindow, SIGNAL(dialogClosed()), this, SLOT(closeAbout()) );
+}
+
+// Close and delete the about window
+void MainWindow::closeAbout()
+{
+   _aboutWindow->hide();
+   delete _aboutWindow;
+   _aboutWindow = NULL;
 }

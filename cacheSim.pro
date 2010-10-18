@@ -10,6 +10,8 @@ INCLUDEPATH += .
 # Input
 HEADERS += Cache.h Memory.h MainWindow.h \
     Processor.h \
-    Exceptions.h
+    Exceptions.h \
+    AboutWindow.h
 SOURCES += Cache.cpp main.cpp Memory.cpp MainWindow.cpp \
-    Processor.cpp
+    Processor.cpp \
+    AboutWindow.cpp
