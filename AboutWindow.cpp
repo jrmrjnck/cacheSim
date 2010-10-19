@@ -79,9 +79,12 @@ void AboutWindow::rotateHead()
 {
    _plassHead->setRotation( _angle );
 
+   static bool direction = false;
+
    // Stop after two revolutions
-   if( _angle == 720 ) {
+   if( _angle == 720 || _angle == -720 ) {
       _angle = 0;
+      direction = !direction;
       _rotateTimer->stop();
 
       // Wait for a while before starting again
@@ -90,7 +93,7 @@ void AboutWindow::rotateHead()
    // Rotate Dr. Plassmann's head in a manner inconsistent with
    // realistic anatomical range of motion.
    else
-      _angle += 30;
+      _angle += direction ? 30 : -30;
 }
 
 // Catch the close event to emit a signal
