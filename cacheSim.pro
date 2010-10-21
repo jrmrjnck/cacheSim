@@ -7,6 +7,9 @@ TARGET = cacheSim
 DEPENDPATH += .
 INCLUDEPATH += .
 
+MOC_DIR = ./moc
+OBJECTS_DIR = ./obj
+
 # Input
 HEADERS += Cache.h Memory.h MainWindow.h \
     Processor.h \
