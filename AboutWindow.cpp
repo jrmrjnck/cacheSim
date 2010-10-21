@@ -79,6 +79,7 @@ void AboutWindow::rotateHead()
 {
    _plassHead->setRotation( _angle );
 
+   // Reverse directions so that his tendons don't become strained
    static bool direction = false;
 
    // Stop after two revolutions

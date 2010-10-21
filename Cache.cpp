@@ -43,9 +43,8 @@ void Cache::flushCache()
          _writeToMemory( i );
          _data[i]->dirty = false;
       }
+      _updateRow( i );
    }
-
-   //clearCache();
 }
 
 // Zero out all the bits
@@ -57,6 +56,7 @@ void Cache::clearCache()
       for( int j = 0; j < _wordsPerBlock; ++j ) {
          _data[i]->words[j] = 0;
       }
+      _updateRow( i );
    }
 }
 
