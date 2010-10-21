@@ -23,15 +23,22 @@ public:
    ~MainWindow();
 
 public slots:
-   void openFile();
+   void loadFile();
+   void reloadFile();
    void showAbout();
    void closeAbout();
+   void changeBlockSize();
+   void changeCacheSize();
+   void enableRunGui( bool enable );
 
 private:
    Processor* _processor;
-
-   QTableView* _cacheView;
-   QTableView* _memoryView;
+   QString    _programFileName;
 
    AboutWindow* _aboutWindow;
+
+   QAction* _loadAction;
+   QAction* _reloadAction;
+   QAction* _runAction;
+   QAction* _stepAction;
 };

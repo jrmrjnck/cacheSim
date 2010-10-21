@@ -33,34 +33,40 @@ struct Instruction
 // the internal state of the program (i.e. instruction list + PC)
 class Processor : public QWidget
 {
-    Q_OBJECT
+Q_OBJECT
 public:
-    explicit Processor(QWidget *parent = 0);
+   explicit Processor(QWidget *parent = 0);
 
-    Cache*  cache();
-    Memory* memory();
-    void    readFile( QString filename );
+   Cache*  cache();
+   Memory* memory();
+   void readFile( QString filename ) throw(FileAccessException);
 
-private slots:
-    void _step();
-
-private:
-    void _execInstruction();
-    void _updateAccDisplay();
-
-    int _showParseError( QString message );
+public slots:
+   void run();
+   void step();
 
 private:
-    Cache*  _cache;
-    Memory* _memory;
+   void _execInstruction();
+   void _updateAccDisplay();
+   void _enableGui( bool enabled );
 
-    QList<Instruction> _instructions;
-    int  _counter;
-    WORD _accumulator;
+   int _showParseError( QString message );
 
-    QListWidget* _insDisplay;
-    QPushButton* _stepButton;
-    QLineEdit*   _accBox;
+signals:
+   void enableGui( bool );
+
+private:
+   Cache*  _cache;
+   Memory* _memory;
+
+   QString _programFileName;
+   QList<Instruction> _instructions;
+   int  _counter;
+   WORD _accumulator;
+
+   QListWidget* _insDisplay;
+   QPushButton* _stepButton;
+   QLineEdit*   _accBox;
 };
 
 #endif // PROCESSOR_H

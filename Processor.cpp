@@ -39,7 +39,6 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    _insDisplay->setSpacing( 5 );
 
    _stepButton = new QPushButton( "Step" );
-   _stepButton->setEnabled( false );
 
    QLabel* _programLabel = new QLabel( "Program:" );
    QLabel* _accLabel = new QLabel( "Accumulator Value:" );
@@ -47,7 +46,7 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    _accBox = new QLineEdit;
    _accBox->setReadOnly( true );
    _accBox->setAlignment( Qt::AlignRight );
-   _accBox->setText( "0x0" );
+   _updateAccDisplay();
 
    QGridLayout* _layout = new QGridLayout( this );
    _layout->addWidget( _programLabel );
@@ -58,11 +57,22 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
 
    setLayout( _layout );
 
-   connect( _stepButton, SIGNAL(clicked()), SLOT(_step()) );
+   connect( _stepButton, SIGNAL(clicked()), SLOT(step()) );
+   _enableGui( false );
+}
+
+// Run all instructions
+void Processor::run()
+{
+   int s = _instructions.size();
+   while( s-- )
+   {
+      step();
+   }
 }
 
 // Slot called when gui wants to step to the next instruction
-void Processor::_step()
+void Processor::step()
 {
    // Clear the arrow from the previous instruction
    _insDisplay->item(_counter)->setIcon(QIcon("blank.png"));
@@ -76,18 +86,18 @@ void Processor::_step()
       error.setIcon( QMessageBox::Critical );
       error.setText( e.what() );
       error.exec();
-      _stepButton->setEnabled( false );
+      _enableGui( false );
    }
 
    // If we just ran the final instruction
    if( _counter == _instructions.size()-1 ) {
-      _stepButton->setEnabled( false );
+      _enableGui( false );
       return;
    }
 
    // Point the arrow at the next instruction
    _insDisplay->item(++_counter)->setIcon(QIcon("arrow.png"));
-   _insDisplay->setCurrentItem( _insDisplay->item(_counter) );
+   _insDisplay->setCurrentRow( _counter );
 }
 
 // Actually run the instruction pointed at by _counter
@@ -108,7 +118,8 @@ void Processor::_execInstruction()
       break;
    case HALT:
       _cache->flushCache();
-      _stepButton->setEnabled( false );
+      _cache->clearCache();
+      _enableGui( false );
       break;
    default:
       break;
@@ -140,22 +151,19 @@ Memory* Processor::memory()
 
 // Open a file specified by filename and read the instructions,
 // one per line
-void Processor::readFile( QString filename )
+void Processor::readFile( QString filename ) throw(FileAccessException)
 {
    // Check for a valid file
    QFile sourceFile( filename );
    if( !sourceFile.exists() || !sourceFile.open(QIODevice::ReadOnly) ) {
-      QMessageBox fileError;
-      fileError.setIcon( QMessageBox::Warning );
-      fileError.setText( "Couldn't open file " + filename );
-      fileError.exec();
-      return;
+      throw FileAccessException( "Couldn't read " + filename.toStdString() );
    }
 
    _instructions.clear();
    _insDisplay->clear();
 
    QTextStream fileStream( &sourceFile );
+   bool programExists = false;
 
    // Interpret each line as an instruction
    for(int i = 0; !fileStream.atEnd(); ++i ) {
@@ -210,13 +218,20 @@ void Processor::readFile( QString filename )
 
       _instructions.append( ins );
       _insDisplay->insertItem( i, new QListWidgetItem(QIcon("blank.png"),line) );
+
+      // Check to see that at least one valid instruction was found
+      programExists = true;
    }
+
+   if( !programExists )
+      return;
 
    // Reset the GUI elements
    _counter = 0;
+   _insDisplay->setCurrentRow( 0 );
    _accumulator = 0;
    _updateAccDisplay();
-   _stepButton->setEnabled( true );
+   _enableGui( true );
    _insDisplay->item(0)->setIcon( QIcon("arrow.png") );
    _cache->clearCache();
    _memory->clearMemory();
@@ -231,4 +246,12 @@ int Processor::_showParseError( QString message )
                   .arg(message)
                   .arg("This line will be removed from the program.") );
    return error.exec();
+}
+
+// Enable or disable the buttons
+void Processor::_enableGui( bool enable )
+{
+   _stepButton->setEnabled( enable );
+   
+   emit enableGui( enable );
 }

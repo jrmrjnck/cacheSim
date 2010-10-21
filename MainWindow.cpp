@@ -17,6 +17,7 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtGui/QApplication>
+#include <QtGui/QToolBar>
 
 #include "MainWindow.h"
 #include "Exceptions.h"
@@ -31,19 +32,45 @@ MainWindow::MainWindow() : QMainWindow()
    _aboutWindow = NULL; 
 
    // Add menus
-   QMenu* fileMenu = new QMenu( "&File" );
-   fileMenu->addAction( "&Open...", this, SLOT(openFile()), QKeySequence::Open );
-   fileMenu->addAction( "E&xit", this, SLOT(close()) );
-   menuBar()->addMenu( fileMenu );
+   QMenu* fileMenu  = menuBar()->addMenu( "&File" );
+   QMenu* runMenu   = menuBar()->addMenu( "&Run" );
+   QMenu* cacheMenu = menuBar()->addMenu( "&Cache" );
+   QMenu* helpMenu  = menuBar()->addMenu( "&Help" );
 
-   QMenu* helpMenu = new QMenu( "&Help" );
-   helpMenu->addAction( "&About", this, SLOT(showAbout()) );
-   menuBar()->addMenu( helpMenu );
+   // File Menu
+   _loadAction   = fileMenu->addAction( QIcon("Folder.png"), "&Load...", 
+                                        this, SLOT(loadFile()), QKeySequence("Ctrl+L") );
+   _reloadAction = fileMenu->addAction( QIcon("Refresh.png"), "&Reload",
+                                        this, SLOT(reloadFile()), QKeySequence("Ctrl+A") );
+   fileMenu->addAction( "&Exit", this, SLOT(close()), QKeySequence("Ctrl+Q") );
+
+   // Run Menu
+   _runAction  = runMenu->addAction( QIcon("Play.png"), "Ru&n", 
+                                     _processor, SLOT(run()), QKeySequence("Ctrl+R") );
+   _stepAction = runMenu->addAction( QIcon("Next.png"), "&Step",
+                                     _processor, SLOT(step()), QKeySequence("Ctrl+S") );
+   connect( _processor, SIGNAL(enableGui(bool)), this, SLOT(enableRunGui(bool)) );
+   enableRunGui( false );
+
+   // Cache menu
+   cacheMenu->addAction( "Block Size", this, SLOT(changeBlockSize()), QKeySequence("Ctrl+B") );
+   cacheMenu->addAction( "Cache Size", this, SLOT(changeCacheSize()), QKeySequence("Ctrl+C") );
+
+   // Help Menu
+   helpMenu->addAction( "About", this, SLOT(showAbout()) );
+
+   // Toolbar
+   QToolBar* iconBar = addToolBar( "Icon Bar" );
+   iconBar->addAction( _loadAction );
+   iconBar->addAction( _reloadAction );
+   iconBar->addSeparator();
+   iconBar->addAction( _runAction );
+   iconBar->addAction( _stepAction );
 
    // Dock the Cache widget
    QDockWidget* _cacheDock = new QDockWidget( "Cache" );
    _cacheDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
-   _cacheView = new QTableView;
+   QTableView* _cacheView = new QTableView;
    _cacheView->setModel( _processor->cache() );
    _cacheView->setGridStyle( Qt::DashLine );
    _cacheView->horizontalHeader()->setResizeMode( QHeaderView::ResizeToContents );
@@ -54,7 +81,7 @@ MainWindow::MainWindow() : QMainWindow()
    // Dock the Memory widget
    QDockWidget* _memDock = new QDockWidget( "Main Memory" );
    _memDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
-   _memoryView = new QTableView;
+   QTableView* _memoryView = new QTableView;
    _memoryView->setModel( _processor->memory() );
    _memoryView->setGridStyle( Qt::DashLine );
    _memoryView->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
@@ -78,15 +105,24 @@ MainWindow::~MainWindow()
 }
 
 // Slot called to show an open file dialog
-void MainWindow::openFile()
+void MainWindow::loadFile()
 {
-   QString filename = QFileDialog::getOpenFileName( this, "Open Program Source",
+   _programFileName = QFileDialog::getOpenFileName( this, "Open Program Source",
                                                     QDir::currentPath(),
                                                     "All Files (*.*)" );
-   if( filename == "" )
+   if( _programFileName.isEmpty() )
       return;
 
-   _processor->readFile( filename );
+   _processor->readFile( _programFileName );
+}
+
+// Reload the last used file
+void MainWindow::reloadFile()
+{
+   if( _programFileName.isEmpty() )
+      return;
+
+   _processor->readFile( _programFileName );
 }
 
 // Show the about dialog
@@ -106,4 +142,23 @@ void MainWindow::closeAbout()
    _aboutWindow->hide();
    delete _aboutWindow;
    _aboutWindow = NULL;
+}
+
+// Show a dialog to configure the block size
+void MainWindow::changeBlockSize()
+{
+
+}
+
+// Show a dialog to configure the cache parameters
+void MainWindow::changeCacheSize()
+{
+
+}
+
+// Make the menu/toolbar options reflect the processor state
+void MainWindow::enableRunGui( bool enabled )
+{
+   _runAction->setEnabled( enabled );
+   _stepAction->setEnabled( enabled );
 }
