@@ -48,12 +48,15 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    _accBox->setAlignment( Qt::AlignRight );
    _updateAccDisplay();
 
+   _statistics = new CacheStatistics;
+
    QGridLayout* _layout = new QGridLayout( this );
    _layout->addWidget( programLabel );
-   _layout->addWidget( _insDisplay, 1, 0, 1, 3 );
    _layout->addWidget( _stepButton, 0, 2 );
+   _layout->addWidget( _insDisplay, 1, 0, 1, 3 );
    _layout->addWidget( accLabel, 2, 0 );
    _layout->addWidget( _accBox, 2, 2 );
+   _layout->addWidget( _statistics, 3, 0, 1, 3 );
 
    setLayout( _layout );
 
@@ -112,10 +115,12 @@ void Processor::_execInstruction()
    case LOAD:
       _accumulator = _cache->readData( operand, &cacheHit );
       cacheHit ? color = Qt::green : color = Qt::red;
+      _statistics->loadCount( cacheHit );
       break;
    case STORE:
       _cache->writeData( operand, _accumulator, &cacheHit );
       cacheHit ? color = Qt::green : color = Qt::red;
+      _statistics->storeCount( cacheHit );
       break;
    case ADD:
       _accumulator += operand;
@@ -131,6 +136,7 @@ void Processor::_execInstruction()
    _insDisplay->item(_counter)->setForeground( color );
 
    _updateAccDisplay();
+   _statistics->updateDisplay();
 }
 
 // Update the accumulator display with the internal

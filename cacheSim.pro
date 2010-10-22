@@ -14,7 +14,9 @@ OBJECTS_DIR = ./obj
 HEADERS += Cache.h Memory.h MainWindow.h \
     Processor.h \
     Exceptions.h \
-    AboutWindow.h
+    AboutWindow.h \
+    CacheStatistics.h
 SOURCES += Cache.cpp main.cpp Memory.cpp MainWindow.cpp \
     Processor.cpp \
-    AboutWindow.cpp
+    AboutWindow.cpp \
+    CacheStatistics.cpp

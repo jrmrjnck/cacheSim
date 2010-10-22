@@ -17,6 +17,7 @@
 #include "Cache.h"
 #include "Memory.h"
 #include "Exceptions.h"
+#include "CacheStatistics.h"
 
 typedef int16_t WORD;
 
@@ -67,6 +68,8 @@ private:
    QListWidget* _insDisplay;
    QPushButton* _stepButton;
    QLineEdit*   _accBox;
+
+   CacheStatistics* _statistics;
 };
 
 #endif // PROCESSOR_H
