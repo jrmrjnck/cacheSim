@@ -61,16 +61,24 @@ void Cache::clearCache()
 }
 
 // Get the value residing at address
-int Cache::readData( int address )
+int Cache::readData( int address, bool* cacheHit )
 {
+   bool hit;
+   if( cacheHit == NULL )
+      cacheHit = &hit;
+
    // Seperate the parts of the address
    int offset = address & (_wordsPerBlock-1);
    int tag = address >> floorLog2(_wordsPerBlock);
    int line = tag & (_cacheLines-1);
    tag >>= floorLog2(_cacheLines);
 
-   if( _data[line]->tag != tag )
+   if( _data[line]->tag != tag ) {
       _loadFromMemory( tag, line );
+      *cacheHit = false;
+   }
+   else
+      *cacheHit = true;
 
    _updateRow( line );
 
@@ -78,15 +86,23 @@ int Cache::readData( int address )
 }
 
 // Write value to address
-void Cache::writeData( int address, int value )
+void Cache::writeData( int address, int value, bool* cacheHit )
 {
+   bool hit;
+   if( cacheHit == NULL )
+      cacheHit = &hit;
+
    int offset = address & (_wordsPerBlock-1);
    int tag = address >> floorLog2(_wordsPerBlock);
    int line = tag & (_cacheLines-1);
    tag >>= floorLog2( _cacheLines );
 
-   if( _data[line]->tag != tag )
+   if( _data[line]->tag != tag ) {
       _loadFromMemory( tag, line );
+      *cacheHit = false;
+   }
+   else
+      *cacheHit = true;
 
    _data[line]->words[offset] = value;
    _data[line]->dirty = true;

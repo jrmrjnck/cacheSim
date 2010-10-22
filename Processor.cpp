@@ -40,8 +40,8 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
 
    _stepButton = new QPushButton( "Step" );
 
-   QLabel* _programLabel = new QLabel( "Program:" );
-   QLabel* _accLabel = new QLabel( "Accumulator Value:" );
+   QLabel* programLabel = new QLabel( "Program:" );
+   QLabel* accLabel = new QLabel( "Accumulator Value:" );
 
    _accBox = new QLineEdit;
    _accBox->setReadOnly( true );
@@ -49,10 +49,10 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    _updateAccDisplay();
 
    QGridLayout* _layout = new QGridLayout( this );
-   _layout->addWidget( _programLabel );
+   _layout->addWidget( programLabel );
    _layout->addWidget( _insDisplay, 1, 0, 1, 3 );
    _layout->addWidget( _stepButton, 0, 2 );
-   _layout->addWidget( _accLabel, 2, 0 );
+   _layout->addWidget( accLabel, 2, 0 );
    _layout->addWidget( _accBox, 2, 2 );
 
    setLayout( _layout );
@@ -103,27 +103,33 @@ void Processor::step()
 // Actually run the instruction pointed at by _counter
 void Processor::_execInstruction()
 {
-   int operand = _instructions.at( _counter ).operand;
+   int operand = _instructions.at(_counter).operand;
+   bool cacheHit = false;
+   Qt::GlobalColor color = Qt::black;
+
    switch( _instructions.at(_counter).opcode )
    {
    case LOAD:
-      _accumulator = _cache->readData( operand );
+      _accumulator = _cache->readData( operand, &cacheHit );
+      cacheHit ? color = Qt::green : color = Qt::red;
       break;
    case STORE:
-      _cache->writeData( _instructions.at(_counter).operand,
-                         _accumulator );
+      _cache->writeData( operand, _accumulator, &cacheHit );
+      cacheHit ? color = Qt::green : color = Qt::red;
       break;
    case ADD:
       _accumulator += operand;
       break;
    case HALT:
       _cache->flushCache();
-      _cache->clearCache();
       _enableGui( false );
       break;
    default:
       break;
    }
+
+   _insDisplay->item(_counter)->setForeground( color );
+
    _updateAccDisplay();
 }
 

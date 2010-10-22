@@ -13,6 +13,7 @@
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsView>
 #include <QtCore/QTimer>
+#include <QtCore/QDebug>
 
 #include "AboutWindow.h"
 
@@ -79,7 +80,7 @@ void AboutWindow::rotateHead()
 {
    _plassHead->setRotation( _angle );
 
-   // Reverse directions so that his tendons don't become strained
+   // Toggle directions so that his tendons don't become strained
    static bool direction = false;
 
    // Stop after two revolutions
@@ -103,3 +104,4 @@ void AboutWindow::closeEvent( QCloseEvent* e )
    e->accept();
    emit dialogClosed();
 }
+

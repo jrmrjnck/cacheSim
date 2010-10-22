@@ -30,18 +30,23 @@ MainWindow::MainWindow() : QMainWindow()
    setCentralWidget( _processor );
 
    _aboutWindow = NULL; 
+   setWindowIcon( QIcon("Chip.png") );
+   setWindowTitle( "CacheSim" );
 
    // Add menus
-   QMenu* fileMenu  = menuBar()->addMenu( "&File" );
-   QMenu* runMenu   = menuBar()->addMenu( "&Run" );
-   QMenu* cacheMenu = menuBar()->addMenu( "&Cache" );
-   QMenu* helpMenu  = menuBar()->addMenu( "&Help" );
+   QMenuBar* menus = menuBar();
+   QMenu* fileMenu  = menus->addMenu( "&File" );
+   QMenu* runMenu   = menus->addMenu( "&Run" );
+   QMenu* cacheMenu = menus->addMenu( "&Cache" );
+   QMenu* helpMenu  = menus->addMenu( "&Help" );
 
    // File Menu
    _loadAction   = fileMenu->addAction( QIcon("Folder.png"), "&Load...", 
                                         this, SLOT(loadFile()), QKeySequence("Ctrl+L") );
    _reloadAction = fileMenu->addAction( QIcon("Refresh.png"), "&Reload",
                                         this, SLOT(reloadFile()), QKeySequence("Ctrl+A") );
+   _reloadAction->setEnabled( false );
+   fileMenu->addSeparator();
    fileMenu->addAction( "&Exit", this, SLOT(close()), QKeySequence("Ctrl+Q") );
 
    // Run Menu
@@ -61,15 +66,25 @@ MainWindow::MainWindow() : QMainWindow()
 
    // Toolbar
    QToolBar* iconBar = addToolBar( "Icon Bar" );
+   iconBar->setMovable( false );
    iconBar->addAction( _loadAction );
    iconBar->addAction( _reloadAction );
    iconBar->addSeparator();
    iconBar->addAction( _runAction );
    iconBar->addAction( _stepAction );
 
+   // Status Bar
+   statusBar();
+   _loadAction->setStatusTip( "Load a new program file." );
+   _reloadAction->setStatusTip( "Reset the program to its beginning." );
+   _runAction->setStatusTip( "Run to program to its end" );
+   _stepAction->setStatusTip( "Execute the next instruction" );
+
    // Dock the Cache widget
    QDockWidget* _cacheDock = new QDockWidget( "Cache" );
    _cacheDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
+   _cacheDock->setFeatures( QDockWidget::DockWidgetMovable | 
+                            QDockWidget::DockWidgetFloatable );
    QTableView* _cacheView = new QTableView;
    _cacheView->setModel( _processor->cache() );
    _cacheView->setGridStyle( Qt::DashLine );
@@ -81,6 +96,8 @@ MainWindow::MainWindow() : QMainWindow()
    // Dock the Memory widget
    QDockWidget* _memDock = new QDockWidget( "Main Memory" );
    _memDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
+   _memDock->setFeatures( QDockWidget::DockWidgetMovable | 
+                            QDockWidget::DockWidgetFloatable );
    QTableView* _memoryView = new QTableView;
    _memoryView->setModel( _processor->memory() );
    _memoryView->setGridStyle( Qt::DashLine );
@@ -93,7 +110,8 @@ MainWindow::MainWindow() : QMainWindow()
    // Open file from command line if applicable
    QStringList args = qApp->arguments();
    if( args.size() > 1 ) {
-      _processor->readFile( args.at(1) );
+      _programFileName = args.at( 1 );
+      reloadFile();
    }
 }
 
@@ -114,6 +132,8 @@ void MainWindow::loadFile()
       return;
 
    _processor->readFile( _programFileName );
+
+   _reloadAction->setEnabled( true );
 }
 
 // Reload the last used file
@@ -125,21 +145,21 @@ void MainWindow::reloadFile()
    _processor->readFile( _programFileName );
 }
 
+
 // Show the about dialog
 void MainWindow::showAbout()
 {
-   if( _aboutWindow != NULL )
-      return;
+   if( _aboutWindow == NULL ) {
+      _aboutWindow = new AboutWindow( this );
+      connect( _aboutWindow, SIGNAL(dialogClosed()), this, SLOT(closeAbout()) );
+   }
 
-   _aboutWindow = new AboutWindow( this );
    _aboutWindow->show();
-   connect( _aboutWindow, SIGNAL(dialogClosed()), this, SLOT(closeAbout()) );
 }
 
 // Close and delete the about window
 void MainWindow::closeAbout()
 {
-   _aboutWindow->hide();
    delete _aboutWindow;
    _aboutWindow = NULL;
 }

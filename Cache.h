@@ -30,8 +30,8 @@ public:
    void flushCache();
    void clearCache();
 
-   int readData( int address );
-   void writeData( int address, int value );
+   int readData( int address, bool* cacheHit = NULL );
+   void writeData( int address, int value, bool* cacheHit = NULL );
 
    // Virtual Implementations from QAbstractTableModel
    int rowCount( const QModelIndex& parent = QModelIndex() ) const;
