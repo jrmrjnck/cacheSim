@@ -58,8 +58,10 @@ MainWindow::MainWindow() : QMainWindow()
    enableRunGui( false );
 
    // Cache menu
-   cacheMenu->addAction( "Block Size", this, SLOT(changeBlockSize()), QKeySequence("Ctrl+B") );
-   cacheMenu->addAction( "Cache Size", this, SLOT(changeCacheSize()), QKeySequence("Ctrl+C") );
+   cacheMenu->addAction( "Block Size", _processor, SLOT(changeBlockSize()),
+                         QKeySequence("Ctrl+B") );
+   cacheMenu->addAction( "Cache Size", _processor, SLOT(changeCacheSize()),
+                         QKeySequence("Ctrl+C") );
 
    // Help Menu
    helpMenu->addAction( "About", this, SLOT(showAbout()) );
@@ -81,31 +83,32 @@ MainWindow::MainWindow() : QMainWindow()
    _stepAction->setStatusTip( "Execute the next instruction" );
 
    // Dock the Cache widget
-   QDockWidget* _cacheDock = new QDockWidget( "Cache" );
-   _cacheDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
-   _cacheDock->setFeatures( QDockWidget::DockWidgetMovable | 
+   QDockWidget* cacheDock = new QDockWidget( "Cache" );
+   cacheDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
+   cacheDock->setFeatures( QDockWidget::DockWidgetMovable | 
                             QDockWidget::DockWidgetFloatable );
-   QTableView* _cacheView = new QTableView;
+   _cacheView = new QTableView;
    _cacheView->setModel( _processor->cache() );
    _cacheView->setGridStyle( Qt::DashLine );
    _cacheView->horizontalHeader()->setResizeMode( QHeaderView::ResizeToContents );
    _cacheView->verticalHeader()->setResizeMode( QHeaderView::ResizeToContents );
-   _cacheDock->setWidget( _cacheView );
-   addDockWidget( Qt::RightDockWidgetArea, _cacheDock );
+   cacheDock->setWidget( _cacheView );
+   addDockWidget( Qt::RightDockWidgetArea, cacheDock );
+   connect( _processor, SIGNAL(cacheChanged()), this, SLOT(changeCache()) );
 
    // Dock the Memory widget
-   QDockWidget* _memDock = new QDockWidget( "Main Memory" );
-   _memDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
-   _memDock->setFeatures( QDockWidget::DockWidgetMovable | 
+   QDockWidget* memDock = new QDockWidget( "Main Memory" );
+   memDock->setAllowedAreas( Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea );
+   memDock->setFeatures( QDockWidget::DockWidgetMovable | 
                             QDockWidget::DockWidgetFloatable );
-   QTableView* _memoryView = new QTableView;
-   _memoryView->setModel( _processor->memory() );
-   _memoryView->setGridStyle( Qt::DashLine );
-   _memoryView->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
-   _memoryView->horizontalHeader()->setVisible( false );
-   _memoryView->verticalHeader()->setResizeMode( QHeaderView::ResizeToContents );
-   _memDock->setWidget( _memoryView );
-   addDockWidget( Qt::RightDockWidgetArea, _memDock );
+   QTableView* memoryView = new QTableView;
+   memoryView->setModel( _processor->memory() );
+   memoryView->setGridStyle( Qt::DashLine );
+   memoryView->horizontalHeader()->setResizeMode( QHeaderView::Stretch );
+   memoryView->horizontalHeader()->setVisible( false );
+   memoryView->verticalHeader()->setResizeMode( QHeaderView::ResizeToContents );
+   memDock->setWidget( memoryView );
+   addDockWidget( Qt::RightDockWidgetArea, memDock );
 
    // Open file from command line if applicable
    QStringList args = qApp->arguments();
@@ -128,12 +131,7 @@ void MainWindow::loadFile()
    _programFileName = QFileDialog::getOpenFileName( this, "Open Program Source",
                                                     QDir::currentPath(),
                                                     "All Files (*.*)" );
-   if( _programFileName.isEmpty() )
-      return;
-
-   _processor->readFile( _programFileName );
-
-   _reloadAction->setEnabled( true );
+   reloadFile();
 }
 
 // Reload the last used file
@@ -143,6 +141,7 @@ void MainWindow::reloadFile()
       return;
 
    _processor->readFile( _programFileName );
+   _reloadAction->setEnabled( true );
 }
 
 
@@ -164,21 +163,15 @@ void MainWindow::closeAbout()
    _aboutWindow = NULL;
 }
 
-// Show a dialog to configure the block size
-void MainWindow::changeBlockSize()
-{
-
-}
-
-// Show a dialog to configure the cache parameters
-void MainWindow::changeCacheSize()
-{
-
-}
-
 // Make the menu/toolbar options reflect the processor state
 void MainWindow::enableRunGui( bool enabled )
 {
    _runAction->setEnabled( enabled );
    _stepAction->setEnabled( enabled );
+}
+
+// Reset the model for the cache view
+void MainWindow::changeCache()
+{
+   _cacheView->setModel( _processor->cache() );
 }

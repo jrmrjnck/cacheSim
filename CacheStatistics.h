@@ -23,6 +23,7 @@ public:
 
    void loadCount( bool hit );
    void storeCount( bool hit );
+   void reset();
 
 public slots:
    void updateDisplay();

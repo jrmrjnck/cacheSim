@@ -18,6 +18,7 @@
 #include <QtGui/QMessageBox>
 
 #include "Exceptions.h"
+#include "CacheParameterDialog.h"
 #include "Processor.h"
 
 // Constructor
@@ -28,6 +29,7 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
 
    // Initialize memory components
    _cache = new Cache( 4, 8 );
+   _newCache = NULL;
    _memory = new Memory( 16, 512 );
    _cache->setMemory( _memory );
    _counter = 0;
@@ -38,30 +40,44 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    _insDisplay->setSelectionMode( QAbstractItemView::NoSelection );
    _insDisplay->setSpacing( 5 );
 
-   _stepButton = new QPushButton( "Step" );
-
+   // Top Row
+   QHBoxLayout* top = new QHBoxLayout;
    QLabel* programLabel = new QLabel( "Program:" );
-   QLabel* accLabel = new QLabel( "Accumulator Value:" );
+   _stepButton = new QPushButton( "Step" );
+   top->addWidget( programLabel );
+   top->addStretch( 1 );
+   top->addWidget( _stepButton );
 
+   // Accumulator 
+   QHBoxLayout* bottom = new QHBoxLayout;
+   QLabel* accLabel = new QLabel( "Accumulator Value:" );
    _accBox = new QLineEdit;
    _accBox->setReadOnly( true );
    _accBox->setAlignment( Qt::AlignRight );
    _updateAccDisplay();
+   bottom->addStretch( 1 );
+   bottom->addWidget( accLabel );
+   bottom->addWidget( _accBox );
 
    _statistics = new CacheStatistics;
 
    QGridLayout* _layout = new QGridLayout( this );
-   _layout->addWidget( programLabel );
-   _layout->addWidget( _stepButton, 0, 2 );
+   _layout->addLayout( top, 0, 0, 1, 3 );
    _layout->addWidget( _insDisplay, 1, 0, 1, 3 );
-   _layout->addWidget( accLabel, 2, 0 );
-   _layout->addWidget( _accBox, 2, 2 );
-   _layout->addWidget( _statistics, 3, 0, 1, 3 );
+   _layout->addLayout( bottom, 2, 0, 1, 3 );
+   _layout->addWidget( _statistics, 3, 0, 1, 2 );
 
    setLayout( _layout );
 
    connect( _stepButton, SIGNAL(clicked()), SLOT(step()) );
    _enableGui( false );
+}
+
+Processor::~Processor()
+{
+   delete _cache;
+   delete _memory;
+   delete _newCache;
 }
 
 // Run all instructions
@@ -238,6 +254,14 @@ void Processor::readFile( QString filename ) throw(FileAccessException)
    if( !programExists )
       return;
 
+   if( _newCache != NULL )
+   {
+      delete _cache;
+      _cache = _newCache;
+      _newCache = NULL;
+      emit cacheChanged();
+   }
+
    // Reset the GUI elements
    _counter = 0;
    _insDisplay->setCurrentRow( 0 );
@@ -247,6 +271,7 @@ void Processor::readFile( QString filename ) throw(FileAccessException)
    _insDisplay->item(0)->setIcon( QIcon("arrow.png") );
    _cache->clearCache();
    _memory->clearMemory();
+   _statistics->reset();
 }
 
 // Alert the user to some kind of parse error in the file
@@ -266,4 +291,33 @@ void Processor::_enableGui( bool enable )
    _stepButton->setEnabled( enable );
    
    emit enableGui( enable );
+}
+
+void Processor::changeBlockSize()
+{
+   int bSize = _cache->blockSize();
+   int lines = _cache->lines();
+
+   // Show the current settings in the dialog
+   CacheParameterDialog d( bSize, lines*bSize, this );
+   d.setTab( 0 );
+
+   if( d.exec() == QDialog::Accepted ) {
+      _newCache = new Cache( d.blockSize(), lines );
+      qDebug() << QString("New cache: 
+   }
+}
+
+void Processor::changeCacheSize()
+{
+   int bSize = _cache->blockSize();
+   int lines = _cache->lines();
+
+   // Show the current settings in the dialog
+   CacheParameterDialog d( bSize, lines*bSize, this );
+   d.setTab( 1 );
+   
+   if( d.exec() == QDialog::Accepted ) {
+      _newCache = new Cache( bSize, d.lines() );
+   }
 }

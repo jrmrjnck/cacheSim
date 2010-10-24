@@ -29,6 +29,8 @@ public:
    void setMemory( Memory* mem );
    void flushCache();
    void clearCache();
+   int  lines();
+   int  blockSize();
 
    int readData( int address, bool* cacheHit = NULL );
    void writeData( int address, int value, bool* cacheHit = NULL );

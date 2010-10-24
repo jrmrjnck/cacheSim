@@ -27,13 +27,14 @@ public slots:
    void reloadFile();
    void showAbout();
    void closeAbout();
-   void changeBlockSize();
-   void changeCacheSize();
    void enableRunGui( bool enable );
+   void changeCache();
 
 private:
    Processor* _processor;
    QString    _programFileName;
+
+   QTableView* _cacheView;
 
    AboutWindow* _aboutWindow;
 

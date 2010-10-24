@@ -223,3 +223,13 @@ void Cache::_updateRow( int line )
    QModelIndex end = index( line, _wordsPerBlock+2 );
    emit dataChanged( start, end );
 }
+
+int Cache::lines()
+{
+   return _cacheLines;
+}
+
+int Cache::blockSize()
+{
+   return _wordsPerBlock;
+}

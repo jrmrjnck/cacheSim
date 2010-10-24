@@ -19,6 +19,8 @@ CacheStatistics::CacheStatistics()
 {
    _loadCheckBox = new QCheckBox( "LOAD" );
    _storeCheckBox = new QCheckBox( "STORE" );
+   _loadCheckBox->setChecked( true );
+   _storeCheckBox->setChecked( true );
 
    // Instruction selection group box
    QGroupBox* insType = new QGroupBox( "Instruction" );
@@ -31,8 +33,12 @@ CacheStatistics::CacheStatistics()
    // Count display
    QLabel* hits = new QLabel( "Hits:" );
    QLabel* misses = new QLabel( "Misses:" );
+   hits->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
+   misses->setAlignment( Qt::AlignRight|Qt::AlignVCenter );
    _hits = new QLineEdit;
    _misses = new QLineEdit;
+   _hits->setReadOnly( true );
+   _misses->setReadOnly( true );
 
    QGridLayout* layout = new QGridLayout( this );
    layout->addWidget( insType, 0, 0, 2, 1 );
@@ -40,6 +46,7 @@ CacheStatistics::CacheStatistics()
    layout->addWidget( _hits, 0, 2 );
    layout->addWidget( misses, 1, 1 );
    layout->addWidget( _misses, 1, 2 );
+   layout->setColumnStretch( 3, 1 );
 
    // Initialize data
    _loadMisses = _loadHits = _storeHits = _storeMisses = 0;
@@ -86,4 +93,10 @@ void CacheStatistics::updateDisplay()
 
    _hits->setText( QString::number(hits) );
    _misses->setText( QString::number(misses) );
+}
+
+void CacheStatistics::reset()
+{
+   _loadHits = _loadMisses = _storeHits = _storeMisses = 0;
+   updateDisplay();
 }

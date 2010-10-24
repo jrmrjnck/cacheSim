@@ -37,6 +37,7 @@ class Processor : public QWidget
 Q_OBJECT
 public:
    explicit Processor(QWidget *parent = 0);
+   ~Processor();
 
    Cache*  cache();
    Memory* memory();
@@ -45,6 +46,8 @@ public:
 public slots:
    void run();
    void step();
+   void changeBlockSize();
+   void changeCacheSize();
 
 private:
    void _execInstruction();
@@ -55,10 +58,13 @@ private:
 
 signals:
    void enableGui( bool );
+   void cacheChanged( void );
 
 private:
    Cache*  _cache;
    Memory* _memory;
+
+   Cache* _newCache;
 
    QString _programFileName;
    QList<Instruction> _instructions;
