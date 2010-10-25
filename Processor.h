@@ -53,7 +53,8 @@ private:
    void _execInstruction();
    void _updateAccDisplay();
    void _enableGui( bool enabled );
-
+   void _changeCache( int activeTab );
+   void _switchCaches();
    int _showParseError( QString message );
 
 signals:
@@ -62,11 +63,9 @@ signals:
 
 private:
    Cache*  _cache;
+   Cache*  _newCache;
    Memory* _memory;
 
-   Cache* _newCache;
-
-   QString _programFileName;
    QList<Instruction> _instructions;
    int  _counter;
    WORD _accumulator;

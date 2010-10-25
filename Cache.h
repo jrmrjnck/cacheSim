@@ -23,13 +23,13 @@ class Cache : public QAbstractTableModel
    Q_OBJECT
  
 public:
-   Cache( int wordsPerBlock, int lines );
+   Cache( int wordsPerBlock, int words, Memory* memory = NULL );
    ~Cache();
 
    void setMemory( Memory* mem );
    void flushCache();
    void clearCache();
-   int  lines();
+   int  words();
    int  blockSize();
 
    int readData( int address, bool* cacheHit = NULL );
@@ -51,6 +51,7 @@ private:
    QList<CacheLine*> _data;
    Memory* _mainMem;
 
+   int _words;
    int _cacheLines;
    int _wordsPerBlock;
 };

@@ -10,6 +10,7 @@
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
 #include <QRadioButton>
+#include <QDebug>
 
 #include "CacheParameterDialog.h"
 
@@ -64,6 +65,8 @@ CacheParameterDialog::CacheParameterDialog( int blockSize, int words,
    layout->addWidget( _optionTabs );
    layout->addWidget( buttons );
    setLayout( layout );
+
+   connect( this, SIGNAL(finished(int)), this, SLOT(_getData(int)) );
 }
 
 int CacheParameterDialog::blockSize()
@@ -71,9 +74,9 @@ int CacheParameterDialog::blockSize()
    return _blockSize;
 }
 
-int CacheParameterDialog::lines()
+int CacheParameterDialog::words()
 {
-   return (_words / _blockSize);
+   return _words;
 }
 
 void CacheParameterDialog::setTab( int index )
@@ -82,8 +85,12 @@ void CacheParameterDialog::setTab( int index )
 }
 
 // Save the selections on close
-void CacheParameterDialog::closeEvent( QCloseEvent* event )
+void CacheParameterDialog::_getData( int resultCode )
 {
+   if( resultCode != QDialog::Accepted )
+      return;
+
+   qDebug() << "CacheParameterDialog close event";
    // Find cache size
    QList<QRadioButton*> options = _sizeGroup->findChildren<QRadioButton*>();
    foreach( QRadioButton* option, options)

@@ -22,10 +22,10 @@ public:
    void setTab( int index );
 
    int blockSize();
-   int lines();
+   int words();
 
-protected:
-   void closeEvent( QCloseEvent* event );
+private slots:
+   void _getData( int resultCode );
 
 private:
    int _blockSize;

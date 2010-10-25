@@ -15,10 +15,12 @@
 int floorLog2( unsigned int );
 
 // Constructor
-Cache::Cache( int wordsPerBlock, int lines ) : QAbstractTableModel()
+Cache::Cache( int wordsPerBlock, int words, Memory* memory ) : QAbstractTableModel()
 {
-   _cacheLines = lines;
+   _words = words;
    _wordsPerBlock = wordsPerBlock;
+   _cacheLines = _words / _wordsPerBlock;
+   _mainMem = memory;
 
    for( int i = 0; i < _cacheLines; ++i ) {
       _data.append( new CacheLine(_wordsPerBlock) );
@@ -224,9 +226,9 @@ void Cache::_updateRow( int line )
    emit dataChanged( start, end );
 }
 
-int Cache::lines()
+int Cache::words()
 {
-   return _cacheLines;
+   return _words;
 }
 
 int Cache::blockSize()

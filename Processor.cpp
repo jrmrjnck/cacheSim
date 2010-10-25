@@ -28,10 +28,9 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
                .arg(sizeof(WORD)*CHAR_BIT);
 
    // Initialize memory components
-   _cache = new Cache( 4, 8 );
    _newCache = NULL;
    _memory = new Memory( 16, 512 );
-   _cache->setMemory( _memory );
+   _cache = new Cache( 4, 32, _memory );
    _counter = 0;
    _accumulator = 0;
 
@@ -50,7 +49,7 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
 
    // Accumulator 
    QHBoxLayout* bottom = new QHBoxLayout;
-   QLabel* accLabel = new QLabel( "Accumulator Value:" );
+   QLabel* accLabel = new QLabel( "Accumulator:" );
    _accBox = new QLineEdit;
    _accBox->setReadOnly( true );
    _accBox->setAlignment( Qt::AlignRight );
@@ -254,21 +253,17 @@ void Processor::readFile( QString filename ) throw(FileAccessException)
    if( !programExists )
       return;
 
-   if( _newCache != NULL )
-   {
-      delete _cache;
-      _cache = _newCache;
-      _newCache = NULL;
-      emit cacheChanged();
-   }
+   _switchCaches();
 
    // Reset the GUI elements
    _counter = 0;
    _insDisplay->setCurrentRow( 0 );
+   _insDisplay->item(0)->setIcon( QIcon("arrow.png") );
+
    _accumulator = 0;
    _updateAccDisplay();
+
    _enableGui( true );
-   _insDisplay->item(0)->setIcon( QIcon("arrow.png") );
    _cache->clearCache();
    _memory->clearMemory();
    _statistics->reset();
@@ -295,29 +290,48 @@ void Processor::_enableGui( bool enable )
 
 void Processor::changeBlockSize()
 {
-   int bSize = _cache->blockSize();
-   int lines = _cache->lines();
-
-   // Show the current settings in the dialog
-   CacheParameterDialog d( bSize, lines*bSize, this );
-   d.setTab( 0 );
-
-   if( d.exec() == QDialog::Accepted ) {
-      _newCache = new Cache( d.blockSize(), lines );
-      qDebug() << QString("New cache: 
-   }
+   _changeCache( 0 );
 }
 
 void Processor::changeCacheSize()
 {
-   int bSize = _cache->blockSize();
-   int lines = _cache->lines();
+   _changeCache( 1 );
+}
 
+void Processor::_changeCache( int tab )
+{
    // Show the current settings in the dialog
-   CacheParameterDialog d( bSize, lines*bSize, this );
-   d.setTab( 1 );
+   CacheParameterDialog d( _cache->blockSize(), _cache->words(), this );
+   d.setTab( tab );
    
    if( d.exec() == QDialog::Accepted ) {
-      _newCache = new Cache( bSize, d.lines() );
+      delete _newCache;
+      _newCache = new Cache( d.blockSize(), d.words(), _memory );
+      qDebug() << QString("New cache created: %1 words, %2 per block")
+                  .arg(d.words()).arg(d.blockSize());
+
+      // Switch out the caches now if we're not running a program
+      if( _counter == 0 ) {
+         _switchCaches();
+      }
+      else {
+const char message[] = "The cache parameters will be changed when a new \
+program is started or the current program is reloaded.";
+         QMessageBox::information( this, "Update Cache", message );
+      }
    }
+}
+
+// Actually perform the switch between old and new caches
+void Processor::_switchCaches()
+{
+   if( _newCache == NULL )
+      return;
+
+   delete _cache;
+   _cache = _newCache;
+   _newCache = NULL;
+
+   // Let the view know that the model has changed
+   emit cacheChanged();
 }
