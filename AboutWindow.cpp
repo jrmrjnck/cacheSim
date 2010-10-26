@@ -33,7 +33,7 @@ AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)
    graphicsView->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
    // Make the version text bold
-   QLabel* appVersion = new QLabel( "Cache Simulator, Version 0.0.1" );
+   QLabel* appVersion = new QLabel( "Cache Simulator, Version 0.0.2" );
    QFont font;
    font.setPointSize( 10 );
    font.setBold( true );
