@@ -42,7 +42,7 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    // Top Row
    QHBoxLayout* top = new QHBoxLayout;
    QLabel* programLabel = new QLabel( "Program:" );
-   _stepButton = new QPushButton( "Step" );
+   _stepButton = new QPushButton( QIcon("Next.png"), "Step" );
    top->addWidget( programLabel );
    top->addStretch( 1 );
    top->addWidget( _stepButton );
@@ -54,9 +54,13 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    _accBox->setReadOnly( true );
    _accBox->setAlignment( Qt::AlignRight );
    _updateAccDisplay();
-   bottom->addStretch( 1 );
    bottom->addWidget( accLabel );
    bottom->addWidget( _accBox );
+   bottom->addStretch( 1 );
+
+   QFrame* line = new QFrame;
+   line->setFrameShape( QFrame::HLine );
+   line->setFrameShadow( QFrame::Sunken );
 
    _statistics = new CacheStatistics;
 
@@ -64,9 +68,8 @@ Processor::Processor( QWidget *parent ) : QWidget( parent )
    _layout->addLayout( top, 0, 0, 1, 3 );
    _layout->addWidget( _insDisplay, 1, 0, 1, 3 );
    _layout->addLayout( bottom, 2, 0, 1, 3 );
-   _layout->addWidget( _statistics, 3, 0, 1, 2 );
-
-   setLayout( _layout );
+   _layout->addWidget( line, 3, 0, 1, 3 );
+   _layout->addWidget( _statistics, 4, 0, 1, 3 );
 
    connect( _stepButton, SIGNAL(clicked()), SLOT(step()) );
    _enableGui( false );
@@ -148,7 +151,8 @@ void Processor::_execInstruction()
       break;
    }
 
-   _insDisplay->item(_counter)->setForeground( color );
+   if( color != Qt::black )
+      _insDisplay->item(_counter)->setForeground( color );
 
    _updateAccDisplay();
    _statistics->updateDisplay();

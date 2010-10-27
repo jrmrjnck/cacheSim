@@ -10,7 +10,7 @@ INCLUDEPATH += .
 MOC_DIR = ./moc
 OBJECTS_DIR = ./obj
 
-#DEFINES += QT_NO_DEBUG_OUTPUT
+DEFINES += QT_NO_DEBUG_OUTPUT
 
 # Input
 HEADERS += Cache.h Memory.h MainWindow.h \

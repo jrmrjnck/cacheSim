@@ -19,7 +19,6 @@ class CacheStatistics : public QWidget
    Q_OBJECT;
 public:
    CacheStatistics();
-   ~CacheStatistics();
 
    void loadCount( bool hit );
    void storeCount( bool hit );

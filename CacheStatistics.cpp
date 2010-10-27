@@ -24,7 +24,7 @@ CacheStatistics::CacheStatistics()
 
    // Instruction selection group box
    QGroupBox* insType = new QGroupBox( "Instruction" );
-   insType->setFlat( false );
+   insType->setAlignment( Qt::AlignHCenter );
    QVBoxLayout* insLayout = new QVBoxLayout;
    insLayout->addWidget( _loadCheckBox );
    insLayout->addWidget( _storeCheckBox );
@@ -40,7 +40,11 @@ CacheStatistics::CacheStatistics()
    _hits->setReadOnly( true );
    _misses->setReadOnly( true );
 
-   QGridLayout* layout = new QGridLayout( this );
+   // Overall Box
+   QGroupBox* box = new QGroupBox( "Cache Hit Statistics" );
+   box->setAlignment( Qt::AlignHCenter );
+
+   QGridLayout* layout = new QGridLayout( box );
    layout->addWidget( insType, 0, 0, 2, 1 );
    layout->addWidget( hits, 0, 1 );
    layout->addWidget( _hits, 0, 2 );
@@ -48,17 +52,15 @@ CacheStatistics::CacheStatistics()
    layout->addWidget( _misses, 1, 2 );
    layout->setColumnStretch( 3, 1 );
 
+   QGridLayout* l = new QGridLayout( this );
+   l->addWidget( box );
+
    // Initialize data
    _loadMisses = _loadHits = _storeHits = _storeMisses = 0;
    updateDisplay();
 
    connect( _loadCheckBox, SIGNAL(stateChanged(int)), this, SLOT(updateDisplay()) );
    connect( _storeCheckBox, SIGNAL(stateChanged(int)), this, SLOT(updateDisplay()) );
-}
-
-// Destructor
-CacheStatistics::~CacheStatistics()
-{
 }
 
 void CacheStatistics::loadCount( bool hit )
