@@ -18,8 +18,8 @@
 #include "AboutWindow.h"
 
 const char HELP_TEXT[] = \
-"This program simulates the operation of a direct mapped CPU \
-cache for a particularly simple computer architecture.";
+"This program simulates the operation of a direct mapped CPU "
+"cache for a particularly simple computer architecture.";
 
 // Constructor
 AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent)

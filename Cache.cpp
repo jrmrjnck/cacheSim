@@ -45,8 +45,11 @@ void Cache::flushCache()
          _writeToMemory( i );
          _data[i]->dirty = false;
       }
-      _updateRow( i );
    }
+
+   QModelIndex start = index( 0, _wordsPerBlock+2 );
+   QModelIndex end   = index( _cacheLines, _wordsPerBlock+2 );
+   emit dataChanged( start, end );
 }
 
 // Zero out all the bits
